@@ -46,7 +46,7 @@ resource "azurerm_linux_virtual_machine" "main" {
 
   custom_data = base64encode(<<-CLOUD_INIT
     #!/bin/bash
-    set -euxo pipefail
+    set -euo pipefail
 
     apt-get update
     apt-get install -y ca-certificates curl

@@ -3,7 +3,7 @@ data "azurerm_subscription" "current" {
 }
 
 data "azuread_application" "github_actions" {
-  object_id = "53fbfbcf-26a1-4235-995e-9ed994f758c1"
+  object_id = var.application_object_id
 }
 
 data "azuread_service_principal" "github_actions" {
@@ -11,12 +11,12 @@ data "azuread_service_principal" "github_actions" {
 }
 
 resource "azuread_application_federated_identity_credential" "github_actions" {
-  application_object_id = "53fbfbcf-26a1-4235-995e-9ed994f758c1"
-  display_name          = "azure-vm-instance-main-trust"
-  description           = "Allows azure-vm-instance repo to deploy via OIDC"
-  audiences             = ["api://AzureADTokenExchange"]
-  issuer                = "https://token.actions.githubusercontent.com"
-  subject               = "repo:makrsoftitsolutions@348376686/azure-vm-instance@1443840336:*"
+  application_id = "/applications/${var.application_object_id}"
+  display_name   = "azure-vm-instance-main-trust"
+  description    = "Allows azure-vm-instance repo to deploy via OIDC"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://token.actions.githubusercontent.com"
+  subject        = var.github_oidc_subject
 }
 
 resource "azurerm_role_assignment" "contributor" {

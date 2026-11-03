@@ -15,15 +15,16 @@ terraform {
   backend "azurerm" {}
 }
 
-provider "azuread" {}
+provider "azuread" {
+  tenant_id = var.tenant_id
+}
 
 provider "azurerm" {
   subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
 
   features {}
 }
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
@@ -54,15 +55,18 @@ import {
 module "authentication" {
   source = "./modules/authentication"
 
-  subscription_id = var.subscription_id
+  application_object_id = var.application_object_id
+  github_oidc_subject   = var.github_oidc_subject
+  subscription_id       = var.subscription_id
 }
 
 module "networking" {
   source = "./modules/networking"
 
-  location            = var.location
-  name_prefix         = var.name_prefix
-  resource_group_name = azurerm_resource_group.main.name
+  location                  = var.location
+  name_prefix               = var.name_prefix
+  resource_group_name       = azurerm_resource_group.main.name
+  ssh_source_address_prefix = var.ssh_source_address_prefix
 }
 
 module "compute" {

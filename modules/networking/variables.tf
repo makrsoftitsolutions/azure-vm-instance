@@ -12,3 +12,8 @@ variable "resource_group_name" {
   description = "Resource group containing the network resources."
   type        = string
 }
+
+variable "ssh_source_address_prefix" {
+  description = "Source CIDR allowed to access SSH on the VM."
+  type        = string
+}
