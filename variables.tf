@@ -4,16 +4,21 @@ variable "location" {
   default     = "eastus"
 }
 
+variable "subscription_id" {
+  description = "Azure subscription ID in which to deploy resources and assign the GitHub Actions role."
+  type        = string
+  default     = "aa61b080-74f9-41ed-a75f-8e60a60ccae4"
+
+  validation {
+    condition     = lower(var.subscription_id) == "aa61b080-74f9-41ed-a75f-8e60a60ccae4"
+    error_message = "subscription_id must be aa61b080-74f9-41ed-a75f-8e60a60ccae4."
+  }
+}
+
 variable "resource_group_name" {
   description = "Name of the Azure resource group for the container host."
   type        = string
   default     = "rg-azure-vm-instance"
-}
-
-variable "github_oidc_subject" {
-  description = "Exact GitHub Actions OIDC subject allowed to authenticate to Azure."
-  type        = string
-  default     = "repo:makrsoftitsolutions@348376686/azure-vm-instance@1443840336:*"
 }
 
 variable "name_prefix" {

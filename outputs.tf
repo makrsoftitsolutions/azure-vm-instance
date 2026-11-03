@@ -1,5 +1,5 @@
 output "azure_client_id" {
-  description = "Client ID of the GitHub Actions Entra application created by this deployment."
+  description = "Client ID of the existing GitHub Actions Entra application."
   value       = module.authentication.client_id
 }
 
