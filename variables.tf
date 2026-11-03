@@ -30,7 +30,7 @@ variable "application_object_id" {
 variable "github_oidc_subject" {
   description = "Exact GitHub Actions OIDC subject allowed to authenticate to Azure."
   type        = string
-  default     = "repo:makrsoftitsolutions@348376686/azure-vm-instance@1443840336:*"
+  default     = "repo:makrsoftitsolutions@348376686/azure-vm-instance@1443840336:ref:refs/heads/main"
 }
 
 variable "resource_group_name" {
