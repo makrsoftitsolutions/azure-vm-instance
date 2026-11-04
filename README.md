@@ -17,6 +17,8 @@ The root configuration declares an empty `azurerm` backend. GitHub Actions injec
 
 The GitHub deployment identity needs OIDC access, permission to read and write blobs in the state container (for example, Storage Blob Data Contributor), and permission to create the requested resources in the deployment resource group. Its Azure role-assignment permissions may be scoped according to your organization's deployment policy.
 
+The AzureRM provider has automatic resource-provider registration disabled because the GitHub identity is not authorized to register providers at subscription scope. Before planning/applying, a subscription administrator must ensure these providers are registered in the target subscription: `Microsoft.Resources`, `Microsoft.Network`, `Microsoft.ContainerRegistry`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.Insights`. This is a one-time subscription prerequisite; do not grant the CI identity broad subscription permissions just for registration. A subscription administrator can register any missing providers with `az provider register --namespace <namespace>`.
+
 ## Dry run
 
 The GitHub Actions workflow runs formatting, initialization, validation, and `terraform plan` only; it does not provision resources. Before using the plan, configure the GitHub secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variable `TF_STATE_RESOURCE_GROUP`.
