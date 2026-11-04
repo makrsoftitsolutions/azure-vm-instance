@@ -63,3 +63,6 @@ jobs:
 
       - name: Display saved Terraform plan
         run: terraform show -no-color tfplan
+
+      - name: Apply Terraform plan
+        run: terraform apply -input=false -auto-approve tfplan
