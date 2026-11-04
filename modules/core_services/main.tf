@@ -10,7 +10,7 @@ resource "random_string" "resource_suffix" {
 
 resource "azurerm_public_ip" "firewall" {
   name                = "${var.name_prefix}-firewall-pip"
-  location            = var.firewall_location
+  location            = var.location
   resource_group_name = var.network_resource_group_name
   allocation_method   = "Static"
   sku                 = "Standard"
@@ -19,7 +19,7 @@ resource "azurerm_public_ip" "firewall" {
 
 resource "azurerm_firewall" "main" {
   name                = "${var.name_prefix}-hub-firewall"
-  location            = var.firewall_location
+  location            = var.location
   resource_group_name = var.network_resource_group_name
   sku_name            = "AZFW_VNet"
   sku_tier            = var.firewall_sku_tier
@@ -36,7 +36,7 @@ resource "azurerm_firewall" "main" {
 resource "azurerm_container_registry" "main" {
   name                          = "${var.acr_name_prefix}${random_string.resource_suffix.result}"
   resource_group_name           = var.platform_resource_group_name
-  location                      = var.acr_location
+  location                      = var.location
   sku                           = var.acr_sku
   admin_enabled                 = false
   public_network_access_enabled = false
@@ -45,7 +45,7 @@ resource "azurerm_container_registry" "main" {
 
 resource "azurerm_key_vault" "main" {
   name                          = "${var.key_vault_name_prefix}-${random_string.resource_suffix.result}"
-  location                      = var.key_vault_location
+  location                      = var.location
   resource_group_name           = var.security_resource_group_name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = var.key_vault_sku
@@ -63,7 +63,7 @@ resource "azurerm_key_vault" "main" {
 
 resource "azurerm_log_analytics_workspace" "main" {
   name                = "${var.name_prefix}-law"
-  location            = var.monitoring_location
+  location            = var.location
   resource_group_name = var.monitoring_resource_group_name
   sku                 = "PerGB2018"
   retention_in_days   = var.log_analytics_retention_days
@@ -102,7 +102,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
 
 resource "azurerm_private_endpoint" "acr" {
   name                = "${var.name_prefix}-acr-pe"
-  location            = var.network_location
+  location            = var.location
   resource_group_name = var.network_resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
   tags                = var.tags
@@ -122,7 +122,7 @@ resource "azurerm_private_endpoint" "acr" {
 
 resource "azurerm_private_endpoint" "key_vault" {
   name                = "${var.name_prefix}-kv-pe"
-  location            = var.network_location
+  location            = var.location
   resource_group_name = var.network_resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
   tags                = var.tags

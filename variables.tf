@@ -3,6 +3,12 @@ variable "subscription_id" {
   type        = string
 }
 
+variable "location" {
+  description = "Azure region for the baseline resources."
+  type        = string
+  default     = "centralindia"
+}
+
 variable "network_resource_group_name" {
   description = "Existing resource group for VNets, Firewall, private endpoints, and private DNS."
   type        = string

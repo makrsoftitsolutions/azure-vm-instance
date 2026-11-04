@@ -23,28 +23,8 @@ variable "monitoring_resource_group_name" {
   type        = string
 }
 
-variable "firewall_location" {
-  description = "Azure region for Azure Firewall."
-  type        = string
-}
-
-variable "acr_location" {
-  description = "Azure region for Azure Container Registry."
-  type        = string
-}
-
-variable "key_vault_location" {
-  description = "Azure region for Azure Key Vault."
-  type        = string
-}
-
-variable "monitoring_location" {
-  description = "Azure region for Log Analytics."
-  type        = string
-}
-
-variable "network_location" {
-  description = "Azure region for private endpoints."
+variable "location" {
+  description = "Azure region for the core services."
   type        = string
 }
 

@@ -1,3 +1,4 @@
+location                       = "centralindia"
 network_resource_group_name    = "rg-network"
 platform_resource_group_name   = "rg-platform"
 security_resource_group_name   = "rg-security"
