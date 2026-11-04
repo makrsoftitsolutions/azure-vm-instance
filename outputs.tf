@@ -1,24 +1,64 @@
-output "azure_client_id" {
-  description = "Client ID of the existing GitHub Actions Entra application."
-  value       = module.authentication.client_id
+output "resource_group_name" {
+  description = "Name of the resource group containing the baseline."
+  value       = azurerm_resource_group.main.name
 }
 
-output "azure_tenant_id" {
-  description = "Entra tenant ID used by the active Azure provider."
-  value       = var.tenant_id
+output "hub_vnet_id" {
+  description = "Resource ID of the hub virtual network."
+  value       = module.networking.hub_vnet_id
 }
 
-output "azure_subscription_id" {
-  description = "Azure subscription ID used by this deployment."
-  value       = var.subscription_id
+output "hub_subnet_ids" {
+  description = "Subnet resource IDs in the hub virtual network."
+  value       = module.networking.hub_subnet_ids
 }
 
-output "instance_public_ip" {
-  description = "Public IPv4 address assigned to the container host."
-  value       = module.networking.public_ip_address
+output "spoke_vnet_id" {
+  description = "Resource ID of the AKS production spoke virtual network."
+  value       = module.networking.spoke_vnet_id
 }
 
-output "instance_id" {
-  description = "Resource ID of the deployed Linux virtual machine."
-  value       = module.compute.vm_id
+output "spoke_subnet_ids" {
+  description = "Subnet resource IDs in the AKS production spoke."
+  value       = module.networking.spoke_subnet_ids
+}
+
+output "firewall_id" {
+  description = "Resource ID of the Azure Firewall."
+  value       = module.core_services.firewall_id
+}
+
+output "firewall_private_ip" {
+  description = "Private IP address of the Azure Firewall."
+  value       = module.core_services.firewall_private_ip
+}
+
+output "firewall_public_ip" {
+  description = "Public IP address assigned to the Azure Firewall."
+  value       = module.core_services.firewall_public_ip
+}
+
+output "acr_id" {
+  description = "Resource ID of the private Azure Container Registry."
+  value       = module.core_services.acr_id
+}
+
+output "acr_login_server" {
+  description = "Login server hostname of the private Azure Container Registry."
+  value       = module.core_services.acr_login_server
+}
+
+output "key_vault_id" {
+  description = "Resource ID of the RBAC-enabled Key Vault."
+  value       = module.core_services.key_vault_id
+}
+
+output "key_vault_uri" {
+  description = "URI of the RBAC-enabled Key Vault."
+  value       = module.core_services.key_vault_uri
+}
+
+output "log_analytics_workspace_id" {
+  description = "Resource ID of the centralized Log Analytics workspace."
+  value       = module.core_services.log_analytics_workspace_id
 }

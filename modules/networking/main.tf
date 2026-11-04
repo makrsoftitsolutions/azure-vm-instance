@@ -1,68 +1,55 @@
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.name_prefix}-vnet"
-  address_space       = ["10.20.0.0/16"]
+resource "azurerm_virtual_network" "hub" {
+  name                = "${var.name_prefix}-hub-vnet"
   location            = var.location
   resource_group_name = var.resource_group_name
+  address_space       = var.hub_address_space
+  tags                = var.tags
 }
 
-resource "azurerm_subnet" "main" {
-  name                 = "${var.name_prefix}-subnet"
+resource "azurerm_virtual_network" "spoke" {
+  name                = "${var.name_prefix}-aks-vnet"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = var.spoke_address_space
+  tags                = var.tags
+}
+
+resource "azurerm_subnet" "hub" {
+  for_each = var.hub_subnet_prefixes
+
+  name                 = each.key
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.20.1.0/24"]
+  virtual_network_name = azurerm_virtual_network.hub.name
+  address_prefixes     = [each.value]
 }
 
-resource "azurerm_route_table" "main" {
-  name                = "${var.name_prefix}-routes"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+resource "azurerm_subnet" "spoke" {
+  for_each = var.spoke_subnet_prefixes
 
-  route {
-    name           = "default-internet"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type  = "Internet"
-  }
+  name                 = each.key
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.spoke.name
+  address_prefixes     = [each.value]
+
+  private_endpoint_network_policies = each.key == "AksSystemSubnet" ? "Disabled" : "Enabled"
 }
 
-resource "azurerm_subnet_route_table_association" "main" {
-  subnet_id      = azurerm_subnet.main.id
-  route_table_id = azurerm_route_table.main.id
+resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  name                      = "${var.name_prefix}-hub-to-spoke"
+  resource_group_name       = var.resource_group_name
+  virtual_network_name      = azurerm_virtual_network.hub.name
+  remote_virtual_network_id = azurerm_virtual_network.spoke.id
+
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
 
-resource "azurerm_public_ip" "main" {
-  name                = "${var.name_prefix}-public-ip"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
+resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+  name                      = "${var.name_prefix}-spoke-to-hub"
+  resource_group_name       = var.resource_group_name
+  virtual_network_name      = azurerm_virtual_network.spoke.name
+  remote_virtual_network_id = azurerm_virtual_network.hub.id
 
-resource "azurerm_network_security_group" "main" {
-  name                = "${var.name_prefix}-nsg"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  security_rule {
-    name                       = "allow-ssh"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    source_address_prefix      = var.ssh_source_address_prefix
-    destination_port_range     = "22"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "allow-http"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    source_address_prefix      = "*"
-    destination_port_range     = "80"
-    destination_address_prefix = "*"
-  }
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
