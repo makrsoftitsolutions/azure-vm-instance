@@ -1,6 +1,8 @@
-location            = "centralindia"
-resource_group_name = "rg-app-dev"
-name_prefix         = "app-dev"
+network_resource_group_name    = "rg-network"
+platform_resource_group_name   = "rg-platform"
+security_resource_group_name   = "rg-security"
+monitoring_resource_group_name = "rg-monitoring"
+name_prefix                    = "app-dev"
 
 hub_address_space   = ["10.100.0.0/16"]
 spoke_address_space = ["10.200.0.0/16"]

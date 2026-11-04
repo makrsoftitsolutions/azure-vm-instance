@@ -1,15 +1,50 @@
-variable "location" {
-  description = "Azure region for the core services."
-  type        = string
-}
-
 variable "name_prefix" {
   description = "Prefix used to name the core services."
   type        = string
 }
 
-variable "resource_group_name" {
-  description = "Resource group containing the core services."
+variable "network_resource_group_name" {
+  description = "Existing resource group for network services and private endpoints."
+  type        = string
+}
+
+variable "platform_resource_group_name" {
+  description = "Existing resource group for Azure Container Registry."
+  type        = string
+}
+
+variable "security_resource_group_name" {
+  description = "Existing resource group for Azure Key Vault."
+  type        = string
+}
+
+variable "monitoring_resource_group_name" {
+  description = "Existing resource group for Log Analytics."
+  type        = string
+}
+
+variable "firewall_location" {
+  description = "Azure region for Azure Firewall."
+  type        = string
+}
+
+variable "acr_location" {
+  description = "Azure region for Azure Container Registry."
+  type        = string
+}
+
+variable "key_vault_location" {
+  description = "Azure region for Azure Key Vault."
+  type        = string
+}
+
+variable "monitoring_location" {
+  description = "Azure region for Log Analytics."
+  type        = string
+}
+
+variable "network_location" {
+  description = "Azure region for private endpoints."
   type        = string
 }
 

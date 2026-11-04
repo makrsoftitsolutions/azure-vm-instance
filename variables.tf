@@ -3,16 +3,28 @@ variable "subscription_id" {
   type        = string
 }
 
-variable "location" {
-  description = "Azure region for the baseline resources."
+variable "network_resource_group_name" {
+  description = "Existing resource group for VNets, Firewall, private endpoints, and private DNS."
   type        = string
-  default     = "centralindia"
+  default     = "rg-network"
 }
 
-variable "resource_group_name" {
-  description = "Resource group containing the AKS prerequisite baseline."
+variable "platform_resource_group_name" {
+  description = "Existing resource group for platform services such as Azure Container Registry."
   type        = string
-  default     = "rg-app-dev"
+  default     = "rg-platform"
+}
+
+variable "security_resource_group_name" {
+  description = "Existing resource group for Azure Key Vault."
+  type        = string
+  default     = "rg-security"
+}
+
+variable "monitoring_resource_group_name" {
+  description = "Existing resource group for Log Analytics."
+  type        = string
+  default     = "rg-monitoring"
 }
 
 variable "name_prefix" {

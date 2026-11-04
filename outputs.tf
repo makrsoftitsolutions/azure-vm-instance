@@ -1,6 +1,11 @@
-output "resource_group_name" {
-  description = "Name of the resource group containing the baseline."
-  value       = azurerm_resource_group.main.name
+output "resource_group_names" {
+  description = "Existing resource groups used by the baseline."
+  value = {
+    network    = var.network_resource_group_name
+    platform   = var.platform_resource_group_name
+    security   = var.security_resource_group_name
+    monitoring = var.monitoring_resource_group_name
+  }
 }
 
 output "hub_vnet_id" {

@@ -2,6 +2,7 @@
 
 This Terraform configuration provisions an AKS prerequisite foundation in `centralindia`:
 
+- Reuses the existing resource groups: VNets, Firewall, private endpoints, and private DNS in `rg-network`; ACR in `rg-platform`; Key Vault in `rg-security`; and Log Analytics in `rg-monitoring`. It does not create or manage `rg-app-dev`.
 - A hub VNet (`10.100.0.0/16`) containing `AzureFirewallSubnet`, `GatewaySubnet`, and `HubMgmtSubnet`.
 - An AKS spoke VNet (`10.200.0.0/16`) containing system, user, and Application Gateway subnets.
 - Bidirectional hub/spoke VNet peering.
@@ -15,7 +16,7 @@ The AKS cluster, node pools, Bastion host, and Application Gateway are intention
 
 The root configuration declares an empty `azurerm` backend. GitHub Actions injects backend settings at initialization and stores this baseline in the existing `makrsoftstorage` storage account, `tfstate` container, under the separate key `aks-hub-spoke-dev.tfstate`. The separate key prevents this configuration from overwriting the former VM deployment's state. Configure the GitHub Actions variable `TF_STATE_RESOURCE_GROUP` with the resource group containing `makrsoftstorage`.
 
-The GitHub deployment identity needs OIDC access, permission to read and write blobs in the state container (for example, Storage Blob Data Contributor), and permission to create the requested resources in the deployment resource group. Its Azure role-assignment permissions may be scoped according to your organization's deployment policy.
+The GitHub deployment identity needs OIDC access, permission to read and write blobs in the state container (for example, Storage Blob Data Contributor), permission to read the four existing resource groups, and permission to create resources in those groups. Its Azure role-assignment permissions may be scoped according to your organization's deployment policy.
 
 The AzureRM provider has automatic resource-provider registration disabled because the GitHub identity is not authorized to register providers at subscription scope. Before planning/applying, a subscription administrator must ensure these providers are registered in the target subscription: `Microsoft.Resources`, `Microsoft.Network`, `Microsoft.ContainerRegistry`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.Insights`. This is a one-time subscription prerequisite; do not grant the CI identity broad subscription permissions just for registration. A subscription administrator can register any missing providers with `az provider register --namespace <namespace>`.
 
@@ -42,4 +43,4 @@ terraform plan
 
 Review the plan, estimated costs, and regional availability before applying. To apply intentionally, run `terraform apply` only after review. Azure Firewall, private endpoints, and Premium ACR incur ongoing charges.
 
-The ACR and Key Vault names include a generated suffix to meet Azure's global-name uniqueness requirements. Private endpoints are placed in `AksSystemSubnet`; its private-endpoint network policies are disabled. The Key Vault uses Azure RBAC, soft delete, and purge protection. This baseline does not grant application identities data-plane roles; grant only the needed roles once the AKS/workload identities are defined.
+The ACR and Key Vault names include a generated suffix to meet Azure's global-name uniqueness requirements. Private endpoints are placed in `AksSystemSubnet`; its private-endpoint network policies are disabled. Diagnostic settings are Azure extension resources attached to their target services, so they cannot be independently assigned to `rg-monitoring`; they send logs to the workspace in that group. The Key Vault uses Azure RBAC, soft delete, and purge protection. This baseline does not grant application identities data-plane roles; grant only the needed roles once the AKS/workload identities are defined.
