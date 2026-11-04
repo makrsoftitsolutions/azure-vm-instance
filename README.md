@@ -2,27 +2,26 @@
 
 This Terraform configuration provisions an AKS prerequisite foundation in `centralindia`:
 
-- Reuses the existing resource groups: VNets, Firewall, private endpoints, and private DNS in `rg-network`; ACR in `rg-platform`; Key Vault in `rg-security`; and Log Analytics in `rg-monitoring`. It does not create or manage `rg-app-dev`.
-- A hub VNet (`10.100.0.0/16`) containing `AzureFirewallSubnet`, `GatewaySubnet`, and `HubMgmtSubnet`.
+- Reuses the existing resource groups: VNets, private endpoints, and private DNS in `rg-network`; ACR in `rg-platform`; Key Vault in `rg-security`; and Log Analytics in `rg-monitoring`. It does not create or manage `rg-app-dev`.
+- A hub VNet (`10.100.0.0/16`) containing `GatewaySubnet` and `HubMgmtSubnet`.
 - An AKS spoke VNet (`10.200.0.0/16`) containing system, user, and Application Gateway subnets.
 - Bidirectional hub/spoke VNet peering.
-- Azure Firewall Standard and a Standard public IP.
 - Premium Azure Container Registry and standard Key Vault, both private-only with private endpoints and private DNS zones.
-- A Log Analytics workspace with diagnostic settings for Firewall, ACR, and Key Vault.
+- A Log Analytics workspace with diagnostic settings for ACR and Key Vault.
 
-The AKS cluster, node pools, Bastion host, and Application Gateway are intentionally not deployed by this baseline. Their subnets and service dependencies are prepared for a later workload deployment. The firewall is provisioned but no UDRs or firewall rules are configured; route tables and workload-specific allow rules should be designed with the AKS egress requirements before enforcing forced tunneling.
+The AKS cluster, node pools, Bastion host, Application Gateway, and Azure Firewall are intentionally not deployed by this baseline. Their subnets and service dependencies are prepared for a later workload deployment. Egress filtering is not provided. The Azure Policy assignment currently denies public IP creation, which Azure Firewall requires in this design; reintroduce a firewall only after an administrator approves a policy-compliant egress design.
 
 ## Terraform state
 
 The root configuration declares an empty `azurerm` backend. GitHub Actions injects backend settings at initialization and stores this baseline in the existing `makrsoftstorage` storage account, `tfstate` container, under the separate key `aks-hub-spoke-dev.tfstate`. The separate key prevents this configuration from overwriting the former VM deployment's state. Configure the GitHub Actions variable `TF_STATE_RESOURCE_GROUP` with the resource group containing `makrsoftstorage`.
 
-Resource-group names and location are passed directly from configuration; Terraform does not query the resource-group metadata during planning. The GitHub deployment identity still needs OIDC access, permission to read and write blobs in the state container (for example, Storage Blob Data Contributor), and permission to create the requested resources in `rg-network`, `rg-platform`, `rg-security`, and `rg-monitoring`. Its Azure role-assignment permissions may be scoped according to your organization's deployment policy.
+Resource-group names and location are passed directly from configuration; Terraform does not query the resource-group metadata during planning. The GitHub deployment identity needs OIDC access, permission to read and write blobs in the state container (for example, Storage Blob Data Contributor), and resource read/write permissions for the managed services in `rg-network`, `rg-platform`, `rg-security`, and `rg-monitoring`. The recent failures showed it lacks at least `Microsoft.ContainerRegistry/registries/read`, `Microsoft.KeyVault/vaults/read`, and `Microsoft.OperationalInsights/workspaces/read`. An Azure administrator must grant an appropriate least-privilege role or custom role at these resource-group scopes. This configuration does not create role assignments or grant the CI identity its own permissions.
 
 The AzureRM provider has automatic resource-provider registration disabled because the GitHub identity is not authorized to register providers at subscription scope. Before planning/applying, a subscription administrator must ensure these providers are registered in the target subscription: `Microsoft.Resources`, `Microsoft.Network`, `Microsoft.ContainerRegistry`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.Insights`. This is a one-time subscription prerequisite; do not grant the CI identity broad subscription permissions just for registration. A subscription administrator can register any missing providers with `az provider register --namespace <namespace>`.
 
 ## Dry run
 
-The GitHub Actions workflow runs formatting, initialization, validation, and `terraform plan -out=tfplan`, then automatically applies that exact saved plan with `terraform apply -auto-approve tfplan` on pushes to `main` and manual workflow dispatch. This provisions or changes Azure resources without a separate approval step. Before enabling the workflow, configure the GitHub secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variable `TF_STATE_RESOURCE_GROUP`. For plan-only testing, run the local commands below and review the plan without running `terraform apply`.
+The GitHub Actions workflow runs formatting, initialization, validation, and `terraform plan` on pushes to `main` and manual workflow dispatch. It does not apply changes; review the plan and run an explicitly approved apply separately. Before running the workflow, configure the GitHub secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variable `TF_STATE_RESOURCE_GROUP`.
 
 For a local plan, authenticate with Azure CLI and initialize the same backend:
 
@@ -41,6 +40,12 @@ terraform validate
 terraform plan
 ```
 
-Review the plan, estimated costs, and regional availability before applying. To apply intentionally, run `terraform apply` only after review. Azure Firewall, private endpoints, and Premium ACR incur ongoing charges.
+Review the plan, estimated costs, and regional availability before applying. The previous apply failed partway through, so inspect the plan carefully for removals of any resources already recorded in state before applying. Private endpoints and Premium ACR incur ongoing charges.
 
 The ACR and Key Vault names include a generated suffix to meet Azure's global-name uniqueness requirements. Private endpoints are placed in `AksSystemSubnet`; its private-endpoint network policies are disabled. Diagnostic settings are Azure extension resources attached to their target services, so they cannot be independently assigned to `rg-monitoring`; they send logs to the workspace in that group. The Key Vault uses Azure RBAC, soft delete, and purge protection. This baseline does not grant application identities data-plane roles; grant only the needed roles once the AKS/workload identities are defined.
+
+## Azure resource inventory
+
+The separate `Azure resource inventory` workflow can be run manually from GitHub Actions or runs daily at 06:00 UTC. It signs in with the existing `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID` OIDC secrets, performs read-only Azure Resource Graph and VM queries, and uploads `resources.csv`, `resources.json`, and `summary.md` as a 14-day workflow artifact. The identity needs Reader access to the selected subscription and permission to query Azure Resource Graph. No Azure resources are changed.
+
+The inventory includes provisioning state, VM power state (for example, running or stopped/deallocated), and Azure Resource Health availability when reported. Runtime and health states are service-specific; `Not reported` means Azure did not return that state for the resource. Azure Resource Graph health data is not a real-time monitor. VM power states come from the Azure VM list operation.

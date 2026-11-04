@@ -28,21 +28,6 @@ output "spoke_subnet_ids" {
   value       = module.networking.spoke_subnet_ids
 }
 
-output "firewall_id" {
-  description = "Resource ID of the Azure Firewall."
-  value       = module.core_services.firewall_id
-}
-
-output "firewall_private_ip" {
-  description = "Private IP address of the Azure Firewall."
-  value       = module.core_services.firewall_private_ip
-}
-
-output "firewall_public_ip" {
-  description = "Public IP address assigned to the Azure Firewall."
-  value       = module.core_services.firewall_public_ip
-}
-
 output "acr_id" {
   description = "Resource ID of the private Azure Container Registry."
   value       = module.core_services.acr_id

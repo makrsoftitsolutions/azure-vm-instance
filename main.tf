@@ -16,8 +16,6 @@ module "core_services" {
 
   acr_name_prefix                = var.acr_name_prefix
   acr_sku                        = var.acr_sku
-  firewall_sku_tier              = var.firewall_sku_tier
-  firewall_subnet_id             = module.networking.hub_subnet_ids["AzureFirewallSubnet"]
   key_vault_name_prefix          = var.key_vault_name_prefix
   key_vault_sku                  = var.key_vault_sku
   location                       = var.location

@@ -28,11 +28,6 @@ variable "location" {
   type        = string
 }
 
-variable "firewall_subnet_id" {
-  description = "Resource ID of the hub AzureFirewallSubnet."
-  type        = string
-}
-
 variable "private_endpoint_subnet_id" {
   description = "Resource ID of the spoke subnet hosting private endpoints."
   type        = string
@@ -40,11 +35,6 @@ variable "private_endpoint_subnet_id" {
 
 variable "spoke_vnet_id" {
   description = "Resource ID of the AKS spoke virtual network for private DNS links."
-  type        = string
-}
-
-variable "firewall_sku_tier" {
-  description = "Azure Firewall SKU tier."
   type        = string
 }
 

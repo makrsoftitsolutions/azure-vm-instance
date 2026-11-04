@@ -9,9 +9,8 @@ hub_address_space   = ["10.100.0.0/16"]
 spoke_address_space = ["10.200.0.0/16"]
 
 hub_subnet_prefixes = {
-  AzureFirewallSubnet = "10.100.1.0/24"
-  GatewaySubnet       = "10.100.2.0/24"
-  HubMgmtSubnet       = "10.100.3.0/24"
+  GatewaySubnet = "10.100.2.0/24"
+  HubMgmtSubnet = "10.100.3.0/24"
 }
 
 spoke_subnet_prefixes = {
@@ -24,7 +23,6 @@ acr_name_prefix       = "acrappdev"
 acr_sku               = "Premium"
 key_vault_name_prefix = "kv-app-dev"
 key_vault_sku         = "standard"
-firewall_sku_tier     = "Standard"
 
 log_analytics_retention_days = 30
 

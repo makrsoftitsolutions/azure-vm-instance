@@ -10,7 +10,7 @@ variable "location" {
 }
 
 variable "network_resource_group_name" {
-  description = "Existing resource group for VNets, Firewall, private endpoints, and private DNS."
+  description = "Existing resource group for VNets, private endpoints, and private DNS."
   type        = string
   default     = "rg-network"
 }
@@ -105,17 +105,6 @@ variable "key_vault_sku" {
   validation {
     condition     = var.key_vault_sku == "standard"
     error_message = "This baseline provisions a standard Key Vault."
-  }
-}
-
-variable "firewall_sku_tier" {
-  description = "Azure Firewall SKU tier."
-  type        = string
-  default     = "Standard"
-
-  validation {
-    condition     = var.firewall_sku_tier == "Standard"
-    error_message = "This baseline provisions Azure Firewall Standard."
   }
 }
 

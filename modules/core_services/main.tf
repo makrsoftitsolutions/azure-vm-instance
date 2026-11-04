@@ -8,31 +8,6 @@ resource "random_string" "resource_suffix" {
   special = false
 }
 
-resource "azurerm_public_ip" "firewall" {
-  name                = "${var.name_prefix}-firewall-pip"
-  location            = var.location
-  resource_group_name = var.network_resource_group_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  tags                = var.tags
-}
-
-resource "azurerm_firewall" "main" {
-  name                = "${var.name_prefix}-hub-firewall"
-  location            = var.location
-  resource_group_name = var.network_resource_group_name
-  sku_name            = "AZFW_VNet"
-  sku_tier            = var.firewall_sku_tier
-  threat_intel_mode   = "Alert"
-  tags                = var.tags
-
-  ip_configuration {
-    name                 = "firewall-configuration"
-    subnet_id            = var.firewall_subnet_id
-    public_ip_address_id = azurerm_public_ip.firewall.id
-  }
-}
-
 resource "azurerm_container_registry" "main" {
   name                          = "${var.acr_name_prefix}${random_string.resource_suffix.result}"
   resource_group_name           = var.platform_resource_group_name
@@ -140,38 +115,12 @@ resource "azurerm_private_endpoint" "key_vault" {
   }
 }
 
-data "azurerm_monitor_diagnostic_categories" "firewall" {
-  resource_id = azurerm_firewall.main.id
-}
-
 data "azurerm_monitor_diagnostic_categories" "acr" {
   resource_id = azurerm_container_registry.main.id
 }
 
 data "azurerm_monitor_diagnostic_categories" "key_vault" {
   resource_id = azurerm_key_vault.main.id
-}
-
-resource "azurerm_monitor_diagnostic_setting" "firewall" {
-  name                       = "${var.name_prefix}-firewall-diagnostics"
-  target_resource_id         = azurerm_firewall.main.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-
-  dynamic "enabled_log" {
-    for_each = toset(data.azurerm_monitor_diagnostic_categories.firewall.log_category_types)
-
-    content {
-      category = enabled_log.value
-    }
-  }
-
-  dynamic "enabled_metric" {
-    for_each = toset(data.azurerm_monitor_diagnostic_categories.firewall.metrics)
-
-    content {
-      category = enabled_metric.value
-    }
-  }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "acr" {
