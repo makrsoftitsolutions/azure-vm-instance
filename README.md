@@ -21,7 +21,7 @@ The AzureRM provider has automatic resource-provider registration disabled becau
 
 ## Dry run
 
-The GitHub Actions workflow runs formatting, initialization, validation, and `terraform plan` only; it does not provision resources. Before using the plan, configure the GitHub secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variable `TF_STATE_RESOURCE_GROUP`.
+The GitHub Actions workflow runs formatting, initialization, validation, and `terraform plan -out=tfplan`, then automatically applies that exact saved plan with `terraform apply -auto-approve tfplan` on pushes to `main` and manual workflow dispatch. This provisions or changes Azure resources without a separate approval step. Before enabling the workflow, configure the GitHub secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variable `TF_STATE_RESOURCE_GROUP`. For plan-only testing, run the local commands below and review the plan without running `terraform apply`.
 
 For a local plan, authenticate with Azure CLI and initialize the same backend:
 
