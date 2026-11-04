@@ -16,8 +16,14 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id                 = var.subscription_id
-  resource_provider_registrations = "none"
+  subscription_id = var.subscription_id
 
-  features {}
+  # Core provider registration requires subscription-level provider registration permissions.
+  resource_provider_registrations = "core"
+
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
