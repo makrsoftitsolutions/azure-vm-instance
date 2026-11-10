@@ -1,0 +1,92 @@
+name: Destroy Azure infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Actions environment whose Terraform state should be destroyed
+        required: true
+        type: environment
+        default: production
+      confirm_destroy:
+        description: Confirm that all Terraform-managed Azure resources should be destroyed
+        required: true
+        type: choice
+        options:
+          - "no"
+          - "yes"
+        default: "no"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: azure-vm-instance-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  destroy:
+    if: inputs.confirm_destroy == 'yes'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_DESTROY_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+      TF_STATE_KEY: ${{ inputs.environment == 'production' && 'azure-vm-instance.tfstate' || format('azure-vm-instance-{0}.tfstate', inputs.environment) }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_DESTROY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform
+        run: |
+          terraform init -input=false \
+            -backend-config="resource_group_name=$TF_STATE_RESOURCE_GROUP" \
+            -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="use_oidc=true" \
+            -backend-config="use_azuread_auth=true"
+
+      - name: Validate Terraform
+        run: terraform validate
+
+      - name: Check that the selected state has managed resources
+        run: |
+          state_resources="$(terraform state list)"
+          if [[ -z "$state_resources" ]]; then
+            echo "Terraform state '$TF_STATE_KEY' contains no managed resources; refusing to report an empty destroy as successful." >&2
+            exit 1
+          fi
+
+      - name: Plan infrastructure destruction
+        env:
+          TF_VAR_vm_admin_ssh_public_key: ${{ secrets.VM_ADMIN_SSH_PUBLIC_KEY }}
+        run: |
+          terraform plan -destroy -input=false -out=tfplan
+          terraform show -no-color tfplan
+
+      - name: Apply destruction plan
+        run: terraform apply -input=false tfplan

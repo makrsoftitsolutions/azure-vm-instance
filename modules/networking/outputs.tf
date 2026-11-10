@@ -1,29 +1,19 @@
-output "hub_vnet_id" {
-  description = "Resource ID of the hub virtual network."
-  value       = azurerm_virtual_network.hub.id
+output "subnet_id" {
+  description = "ID of the VM subnet."
+  value       = azurerm_subnet.main.id
 }
 
-output "hub_vnet_name" {
-  description = "Name of the hub virtual network."
-  value       = azurerm_virtual_network.hub.name
+output "public_ip_id" {
+  description = "ID of the VM public IP resource."
+  value       = azurerm_public_ip.main.id
 }
 
-output "hub_subnet_ids" {
-  description = "Subnet resource IDs in the hub virtual network."
-  value       = { for name, subnet in azurerm_subnet.hub : name => subnet.id }
+output "public_ip_address" {
+  description = "Assigned public IPv4 address."
+  value       = azurerm_public_ip.main.ip_address
 }
 
-output "spoke_vnet_id" {
-  description = "Resource ID of the AKS production spoke virtual network."
-  value       = azurerm_virtual_network.spoke.id
-}
-
-output "spoke_vnet_name" {
-  description = "Name of the AKS production spoke virtual network."
-  value       = azurerm_virtual_network.spoke.name
-}
-
-output "spoke_subnet_ids" {
-  description = "Subnet resource IDs in the AKS production spoke."
-  value       = { for name, subnet in azurerm_subnet.spoke : name => subnet.id }
+output "network_security_group_id" {
+  description = "ID of the network security group attached to the VM NIC."
+  value       = azurerm_network_security_group.main.id
 }

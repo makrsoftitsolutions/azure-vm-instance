@@ -1,31 +1,36 @@
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "main" {
+  name     = var.resource_group_name
+  location = var.location
+}
+
+module "authentication" {
+  source = "./modules/authentication"
+
+  application_name    = "${var.name_prefix}-github-actions"
+  github_oidc_subject = var.github_oidc_subject
+  subscription_id     = data.azurerm_client_config.current.subscription_id
+}
+
 module "networking" {
   source = "./modules/networking"
 
-  location              = var.location
-  name_prefix           = var.name_prefix
-  resource_group_name   = var.network_resource_group_name
-  hub_address_space     = var.hub_address_space
-  spoke_address_space   = var.spoke_address_space
-  hub_subnet_prefixes   = var.hub_subnet_prefixes
-  spoke_subnet_prefixes = var.spoke_subnet_prefixes
-  tags                  = var.tags
+  location            = var.location
+  name_prefix         = var.name_prefix
+  resource_group_name = azurerm_resource_group.main.name
 }
 
-module "core_services" {
-  source = "./modules/core_services"
+module "compute" {
+  source = "./modules/compute"
 
-  acr_name_prefix                = var.acr_name_prefix
-  acr_sku                        = var.acr_sku
-  key_vault_name_prefix          = var.key_vault_name_prefix
-  key_vault_sku                  = var.key_vault_sku
-  location                       = var.location
-  log_analytics_retention_days   = var.log_analytics_retention_days
-  name_prefix                    = var.name_prefix
-  private_endpoint_subnet_id     = module.networking.spoke_subnet_ids["AksSystemSubnet"]
-  network_resource_group_name    = var.network_resource_group_name
-  platform_resource_group_name   = var.platform_resource_group_name
-  security_resource_group_name   = var.security_resource_group_name
-  monitoring_resource_group_name = var.monitoring_resource_group_name
-  spoke_vnet_id                  = module.networking.spoke_vnet_id
-  tags                           = var.tags
+  admin_username            = var.vm_admin_username
+  location                  = var.location
+  name_prefix               = var.name_prefix
+  network_security_group_id = module.networking.network_security_group_id
+  public_ip_id              = module.networking.public_ip_id
+  resource_group_name       = azurerm_resource_group.main.name
+  ssh_public_key            = var.vm_admin_ssh_public_key
+  subnet_id                 = module.networking.subnet_id
+  vm_size                   = var.vm_size
 }

@@ -2,23 +2,22 @@ terraform {
   required_version = ">= 1.7.0"
 
   required_providers {
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
     }
   }
 
   backend "azurerm" {}
 }
 
-provider "azurerm" {
-  subscription_id = var.subscription_id
+provider "azuread" {}
 
-  # CHANGE THIS from "none" to "core" to leverage your subscription permissions
+provider "azurerm" {
   resource_provider_registrations = "core"
 
   features {
