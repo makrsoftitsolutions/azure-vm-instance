@@ -44,6 +44,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Validate Terraform backend configuration
+        run: |
+          : "${TF_STATE_RESOURCE_GROUP:?Set the GitHub Actions variable TF_STATE_RESOURCE_GROUP in the selected environment or repository}"
+          : "${TF_STATE_STORAGE_ACCOUNT:?Set the GitHub Actions variable TF_STATE_STORAGE_ACCOUNT in the selected environment or repository}"
+          : "${TF_STATE_CONTAINER:?Set the GitHub Actions variable TF_STATE_CONTAINER in the selected environment or repository}"
+
       - name: Sign in to Azure with OIDC
         uses: azure/login@v2
         with:
